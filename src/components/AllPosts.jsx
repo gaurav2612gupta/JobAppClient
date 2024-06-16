@@ -1,99 +1,109 @@
-import React from "react";
-import { AppBar, Toolbar, Box, Card, Grid, Typography } from "@mui/material";
-import axios from "axios";
-import { useEffect, useState } from "react";
+import React from 'react'
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SearchIcon from '@mui/icons-material/Edit';
+
+import {
+  Box,
+    Card,
+    Grid,
+    InputAdornment,
+    TextField,
+    Typography,
+  } from "@mui/material";
+  import axios from "axios";
+  import { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 
 const Search = () => {
-  const [post, setPost] = useState(null);
+    const [query, setQuery] = useState("");
+    const [post, setPost] = useState(null);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchInitialPosts = async () => {
-      const response = await axios.get(`http://localhost:8080/jobPosts`);
-      console.log(response);
-      setPost(response.data);
-    };
-    fetchInitialPosts();
-  }, []);
+const handleEdit = (id) => {
+  navigate("/edit",{state:{id}});
+}
+
+    useEffect(() => {
+      const fetchPosts = async () => {
+        const response = await axios.get(`http://localhost:9090/jobPosts/keyword/${query}`);    
+        setPost(response.data);
+      };
+        const fetchInitialPosts = async () => {
+            const response = await axios.get(`http://localhost:9090/jobPosts`);
+            setPost(response.data);
+        }
+         fetchInitialPosts();
+         if (query.length === 0) fetchInitialPosts();
+         if (query.length > 2) fetchPosts();
+      }, [query]);
+
+      const handleDelete = (id) => {
+        async function deletePost() {
+          await axios.delete(`http://localhost:9090/jobPost/${id}`);
+      }
+      deletePost();
+      window.location.reload();
+      }
 
   return (
-    <Grid
-      container
-      spacing={2}
-      sx={{ margin: "2%" }}
-    >
-      <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static">
-          <Toolbar>
-            <Typography
-              variant="h6"
-              align="center"
-              component="div"
-              sx={{ flexGrow: 1 }}
-            >
-              Job Portal
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      </Box>
-      <Grid
-        item
-        xs={12}
-        sx={12}
-        md={12}
-        lg={12}
-      ></Grid>
+    <>
+      <Grid container spacing={2} sx={{ margin: "2%" }}>
+      <Grid item xs={12} sx={12} md={12} lg={12}>
+      <Box>
+          <TextField
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            placeholder="Search..."
+            sx={{ width: "75%", padding: "2% auto" }}
+            fullWidth
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </Box>
+      </Grid>
       {post &&
         post.map((p) => {
           return (
-            <Grid
-              key={p.id}
-              item
-              xs={12}
-              md={6}
-              lg={4}
-            >
-              <Card sx={{ padding: "3%", overflow: "hidden", width: "84%" }}>
-                <Typography
+            <Grid key={p.id} item xs={12} md={6} lg={4}>
+              <Card sx={{ padding: "3%", overflow: "hidden", width: "84%", backgroundColor:"#ADD8E6" }}>
+                <Typography        
                   variant="h5"
-                  sx={{ fontSize: "2rem", fontWeight: "600" }}
+                  sx={{ fontSize: "2rem", fontWeight: "600", fontFamily:"sans-serif" }}
                 >
-                  {p.jobTitle}
+             {p.jobTitle}
                 </Typography>
-                <Typography
-                  sx={{ color: "#585858", marginTop: "2%" }}
-                  variant="body"
-                >
+                <Typography  sx={{ color: "#585858", marginTop:"2%", fontFamily:"cursive" }} variant="body" >
                   Description: {p.jobDescription}
                 </Typography>
                 <br />
                 <br />
-                <Typography variant="h6">
-                  Years of Experience: {p.experienceRequired} years
+                <Typography variant="h6" sx={{ fontFamily:"unset", fontSize:"400"}}>
+                  Experience: {p.experienceRequired} years
                 </Typography>
-
-                <Typography
-                  gutterBottom
-                  variant="body"
-                >
-                  Skills :
-                </Typography>
+                <Typography sx={{fontFamily:"serif",fontSize:"400"}} gutterBottom  variant="body">Skills : </Typography>
                 {p.techStack.map((s, i) => {
                   return (
-                    <Typography
-                      variant="body"
-                      gutterBottom
-                      key={i}
-                    >
+                    <Typography variant="body" gutterBottom key={i}>
                       {s} .
+                      {` `}
                     </Typography>
                   );
                 })}
+               <DeleteIcon onClick={() => handleDelete(p.jonId)} />
+                <EditIcon onClick={() => handleEdit(p.jobId)} />
               </Card>
             </Grid>
           );
         })}
     </Grid>
-  );
-};
+    </>
+ 
+  )
+}
 
-export default Search;
+export default Search
